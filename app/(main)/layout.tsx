@@ -3,12 +3,14 @@
 import type { ReactNode } from "react";
 import MobileHeader from "@/components/mobile-header";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
+import TopNav from "@/components/top-nav";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <div className='w-full min-h-screen'>
       <MobileHeader />
-      <main className="pt-14">{children}</main>
+      <TopNav />
+      <main>{children}</main>
       <div className='md:hidden'>
         <MobileBottomNav />
       </div>
