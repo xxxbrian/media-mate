@@ -10,7 +10,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     <div className='w-full min-h-screen'>
       <MobileHeader />
       <TopNav />
-      <main>{children}</main>
+      <main className="mt-14">{children}</main>
       <div className='md:hidden'>
         <MobileBottomNav />
       </div>
