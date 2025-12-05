@@ -4,7 +4,7 @@
 
 import { Cat, Clover, Film, Home, Radio, Star, Tv } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface MobileBottomNavProps {
   /**
@@ -35,7 +35,14 @@ const customItem: NavItem = {
 };
 
 const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
-  const pathname = usePathname();
+  let pathname = usePathname();
+  const searchParams = useSearchParams();
+  if (pathname.startsWith("/douban")) {
+    const type = searchParams.get("type");
+    if (type) {
+      pathname = `/douban?type=${type}`;
+    }
+  }
   const currentActive = activePath ?? pathname;
 
   // 只在客户端读取 runtime config
