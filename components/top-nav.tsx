@@ -8,7 +8,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 // import { useSite } from "./SiteProvider";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 // import { UserMenu } from "./UserMenu";
 import { CircleUserRound } from "lucide-react";
 
