@@ -591,7 +591,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
             {/* 集数徽章 */}
             {actualEpisodes && actualEpisodes > 1 && (
-              <div className="pointer-events-none absolute right-2 top-2 mt-8 rounded-md bg-emerald-500 px-2 py-0.5 text-xs font-semibold text-white shadow-md">
+              <div className="pointer-events-none absolute right-2 top-2 rounded-md bg-slate-500 px-2 py-0.5 text-xs font-semibold text-white shadow-md">
                 {currentEpisode
                   ? `${currentEpisode}/${actualEpisodes}`
                   : actualEpisodes}
