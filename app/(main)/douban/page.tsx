@@ -553,7 +553,7 @@ function DoubanPageClient() {
           </div>
 
           <Card className="border bg-card/80 backdrop-blur">
-            <CardContent className="p-4 sm:p-6">
+            <CardContent className="">
               {type !== "custom" ? (
                 <DoubanSelector
                   type={type as "movie" | "tv" | "show" | "anime"}
