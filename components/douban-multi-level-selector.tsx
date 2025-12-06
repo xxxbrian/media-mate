@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -405,7 +406,7 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
   // }, [contentType]);
 
   return (
-    <div className="inline-flex flex-wrap gap-1 sm:gap-2 rounded-full bg-transparent p-0.5 sm:p-1">
+    <div className="flex flex-wrap gap-2">
       {categories.map((category) => {
         const isActive = openKey === category.key;
         const isDefault = isDefaultValue(category.key);
@@ -420,25 +421,21 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
           >
             <PopoverTrigger asChild>
               <Button
-                variant={isDefault ? 'ghost' : 'outline'}
+                variant={isDefault ? 'outline' : 'default'}
                 size="sm"
-                className={`
-                  rounded-full px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium
-                  h-8 sm:h-9
-                  ${
-                    !isDefault
-                      ? 'border-green-500/60 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/40'
-                      : 'text-gray-700 dark:text-gray-300'
-                  }
-                `}
+                className={cn(
+                  'rounded-full px-3 text-xs sm:text-sm font-medium',
+                  !isDefault && 'shadow-sm'
+                )}
               >
-                <span className="truncate max-w-[5rem] sm:max-w-[8rem]">
+                <span className="max-w-[7rem] truncate sm:max-w-[9rem]">
                   {getDisplayText(category.key)}
                 </span>
                 <ChevronDown
-                  className={`ml-1 h-3 w-3 shrink-0 transition-transform ${
-                    isActive ? 'rotate-180' : ''
-                  }`}
+                  className={cn(
+                    'ml-1 h-3 w-3 shrink-0 transition-transform',
+                    isActive && 'rotate-180'
+                  )}
                 />
               </Button>
             </PopoverTrigger>
@@ -446,10 +443,10 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
             <PopoverContent
               align="start"
               sideOffset={8}
-              className="w-[260px] sm:w-[320px] md:w-[360px] p-2 sm:p-3 rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-xl"
+              className="w-[280px] sm:w-[340px] p-3"
             >
-              <ScrollArea className="max-h-[260px] sm:max-h-[320px]">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
+              <ScrollArea className="max-h-[320px] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {category.options.map((option) => {
                     const selected = isOptionSelected(
                       category.key,
@@ -464,15 +461,7 @@ const MultiLevelSelector: React.FC<MultiLevelSelectorProps> = ({
                         onClick={() =>
                           handleOptionSelect(category.key, option.value)
                         }
-                        className={`
-                          justify-start px-2 py-1.5 sm:px-3 sm:py-2 h-auto
-                          text-xs sm:text-sm rounded-lg
-                          ${
-                            selected
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200/80 dark:border-green-700/80'
-                              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80'
-                          }
-                        `}
+                        className="h-auto justify-start rounded-md px-3 py-2 text-xs sm:text-sm"
                       >
                         <span className="truncate">{option.label}</span>
                       </Button>
