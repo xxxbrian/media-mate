@@ -33,7 +33,7 @@ import { useLongPress } from "@/hooks/use-long-press";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import MobileActionSheet from "@/components/mobile-action-sheet";
+import MobileActionSheet, { type ActionItem } from "@/components/mobile-action-sheet";
 
 export interface VideoCardProps {
   id?: string;
@@ -372,8 +372,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     return configs[from] || configs.search;
   }, [from, rate]);
 
-  const mobileActions = useMemo(() => {
-    const actions: unknown[] = [];
+  const mobileActions: ActionItem[] = useMemo(() => {
+    const actions: ActionItem[] = [];
 
     if (config.showPlayButton) {
       actions.push({

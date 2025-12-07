@@ -12,7 +12,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 
-interface ActionItem {
+export interface ActionItem {
   id: string;
   label: string;
   icon: React.ReactNode;

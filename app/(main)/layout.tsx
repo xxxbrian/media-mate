@@ -1,6 +1,7 @@
 // app/(main)/layout.tsx
 
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { getConfig } from "@/lib/config";
 import MobileHeader from "@/components/mobile-header";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
@@ -13,10 +14,14 @@ export default async function MainLayout({ children }: { children: ReactNode }) 
   return (
     <div className='w-full min-h-screen'>
       <MobileHeader siteName={siteName} />
-      <TopNav siteName={siteName} />
+      <Suspense fallback={<div className="h-14" />}>
+        <TopNav siteName={siteName} />
+      </Suspense>
       <main className="mt-14">{children}</main>
       <div className='md:hidden'>
-        <MobileBottomNav />
+        <Suspense fallback={null}>
+          <MobileBottomNav />
+        </Suspense>
       </div>
     </div>
   );

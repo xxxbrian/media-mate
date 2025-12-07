@@ -151,9 +151,9 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
         ) : (
           <ToggleRow label="筛选">
             <MultiLevelSelector
-              key={`${type}-${primaryValue}`}
+              key={`movie-${primaryValue}`}
               onChange={handleMultiLevelChange}
-              contentType={type}
+              contentType="movie"
             />
           </ToggleRow>
         )}
@@ -184,9 +184,9 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
         ) : primaryValue === "全部" ? (
           <ToggleRow label="筛选">
             <MultiLevelSelector
-              key={`${type}-${primaryValue}`}
+              key={`tv-${primaryValue}`}
               onChange={handleMultiLevelChange}
-              contentType={type}
+              contentType="tv"
             />
           </ToggleRow>
         ) : null}
@@ -253,9 +253,9 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
         ) : primaryValue === "全部" ? (
           <ToggleRow label="筛选">
             <MultiLevelSelector
-              key={`${type}-${primaryValue}`}
+              key={`show-${primaryValue}`}
               onChange={handleMultiLevelChange}
-              contentType={type}
+              contentType="show"
             />
           </ToggleRow>
         ) : null}

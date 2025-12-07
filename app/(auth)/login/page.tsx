@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ type ServerConfig = {
   SiteName?: string;
 };
 
-export default function LoginPage() {
+function LoginPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -167,5 +167,13 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageClient />
+    </Suspense>
   );
 }
