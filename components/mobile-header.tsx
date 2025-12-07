@@ -1,8 +1,6 @@
 import { Search, CircleArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-// import { BackButton } from './BackButton';
-// import { useSite } from './SiteProvider';
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 import { UserMenu } from "./user-menu";
@@ -13,7 +11,6 @@ interface MobileHeaderProps {
 }
 
 const MobileHeader = ({ showBackButton = false, siteName }: MobileHeaderProps) => {
-  // const { siteName } = useSite();
 
   return (
     <header className="md:hidden fixed top-0 inset-x-0 z-50 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">

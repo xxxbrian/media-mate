@@ -5,7 +5,6 @@ import { Cat, Clover, Film, Home, Radio, Search, Tv } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
-// import { useSite } from "./SiteProvider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 
@@ -37,7 +36,6 @@ function NavLink({ href, icon: Icon, label, active }: NavLinkProps) {
 }
 
 export default function TopNavbar({ siteName }: { siteName: string }) {
-  // const { siteName } = useSite();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const fallbackSiteName = process.env.NEXT_PUBLIC_SITE_NAME || "MediaMate";

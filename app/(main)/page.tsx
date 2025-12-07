@@ -1,5 +1,3 @@
-import { headers } from "next/headers";
-
 import HomeClient from "./home-client";
 
 import { BangumiCalendarData, normalizeBangumiData } from "@/lib/bangumi.client";
