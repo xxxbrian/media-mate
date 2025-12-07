@@ -283,7 +283,7 @@ function SkipConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md z-99">
         <DialogHeader>
           <DialogTitle>跳过片头片尾</DialogTitle>
           <DialogDescription>
