@@ -1852,7 +1852,7 @@ function PlayPageClient() {
           </Card>
 
           <Card className="h-full">
-            <CardContent className="flex h-full flex-col px-4">
+            <CardContent className="flex h-full flex-col px-4 lg:max-h-[500px] max-h-[600px]">
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">选集与换源</p>
@@ -1872,7 +1872,7 @@ function PlayPageClient() {
               </div>
 
               {!isEpisodeSelectorCollapsed ? (
-                <div className="flex-1">
+                <div className="flex-1 overflow-y-auto">
                   <EpisodeSelector
                     totalEpisodes={totalEpisodes}
                     episodes_titles={detail?.episodes_titles || []}

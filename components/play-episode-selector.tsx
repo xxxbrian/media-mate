@@ -401,7 +401,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
         {/* ------------------------------ 选集 Tab ------------------------------ */}
         <TabsContent
           value="episodes"
-          className="flex flex-col flex-1 focus-visible:outline-none"
+          className="flex flex-col flex-1 focus-visible:outline-none overflow-y-auto overflow-x-hidden"
         >
           <div className="flex items-center gap-4 mb-4 border-b border-border -mx-6 px-6 flex-shrink-0">
             <div
@@ -447,7 +447,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
             </Button>
           </div>
 
-          <div className="flex flex-wrap gap-3 overflow-y-auto flex-1 content-start pb-4">
+          <div className="flex flex-wrap gap-3 flex-1 content-start pb-4">
             {pageEpisodes.map((episodeNumber) => {
               const isActive = episodeNumber === value;
               return (
