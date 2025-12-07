@@ -19,6 +19,7 @@ import { Spinner } from "@/components/ui/spinner";
 type ServerConfig = {
   StorageType?: string;
   EnableRegistration?: boolean;
+  SiteName?: string;
 };
 
 export default function LoginPage() {
@@ -31,6 +32,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [shouldAskUsername, setShouldAskUsername] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
+  const [siteName, setSiteName] = useState(
+    process.env.NEXT_PUBLIC_SITE_NAME || "MediaMate"
+  );
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -38,6 +42,9 @@ export default function LoginPage() {
         const res = await fetch("/api/server-config");
         if (!res.ok) return;
         const data = (await res.json()) as ServerConfig;
+        if (data.SiteName) {
+          setSiteName(data.SiteName);
+        }
         setShouldAskUsername(true);
         setRegistrationEnabled(Boolean(data.EnableRegistration));
       } catch {
@@ -88,6 +95,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
+        <div className="mb-4 text-center">
+          <p className="text-sm font-semibold text-primary">{siteName}</p>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>登录</CardTitle>
