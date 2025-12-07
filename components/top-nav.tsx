@@ -7,8 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 // import { useSite } from "./SiteProvider";
 import { ThemeToggle } from "@/components/theme-toggle";
-// import { UserMenu } from "./UserMenu";
-import { CircleUserRound } from "lucide-react";
+import { UserMenu } from "@/components/user-menu";
 
 type NavLinkProps = {
   href: string;
@@ -119,7 +118,7 @@ export default function TopNavbar({ siteName }: { siteName: string }) {
             {/* Right: 主题切换 + 用户菜单 */}
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <CircleUserRound className="w-4 h-4" />
+              <UserMenu />
             </div>
           </nav>
         </div>

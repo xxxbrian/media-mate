@@ -1,11 +1,11 @@
-import { Search, CircleArrowLeft, CircleUserRound } from "lucide-react";
+import { Search, CircleArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 // import { BackButton } from './BackButton';
 // import { useSite } from './SiteProvider';
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
-// import { UserMenu } from './UserMenu';
+import { UserMenu } from "./user-menu";
 
 interface MobileHeaderProps {
   showBackButton?: boolean;
@@ -43,7 +43,7 @@ const MobileHeader = ({ showBackButton = false, siteName }: MobileHeaderProps) =
         {/* 右侧：主题切换 + 用户菜单 */}
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
-          <CircleUserRound className="h-4 w-4" />
+          <UserMenu />
         </div>
       </div>
     </header>
