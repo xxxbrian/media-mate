@@ -7,27 +7,43 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+type DoubanImageProxyType =
+  | 'direct'
+  | 'server'
+  | 'img3'
+  | 'cmliussss-cdn-tencent'
+  | 'cmliussss-cdn-ali'
+  | 'custom';
+
 function getDoubanImageProxyConfig(): {
-  proxyType:
-    | 'direct'
-    | 'server'
-    | 'img3'
-    | 'cmliussss-cdn-tencent'
-    | 'cmliussss-cdn-ali'
-    | 'custom';
+  proxyType: DoubanImageProxyType;
   proxyUrl: string;
 } {
-  const doubanImageProxyType =
-    localStorage.getItem('doubanImageProxyType') ||
-    (window as any).RUNTIME_CONFIG?.DOUBAN_IMAGE_PROXY_TYPE ||
+  const envType =
+    process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE ||
     'cmliussss-cdn-tencent';
-  const doubanImageProxy =
-    localStorage.getItem('doubanImageProxyUrl') ||
-    (window as any).RUNTIME_CONFIG?.DOUBAN_IMAGE_PROXY ||
-    '';
+  const envProxy = process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY || '';
+
+  const validTypes = new Set<DoubanImageProxyType>([
+    'direct',
+    'server',
+    'img3',
+    'cmliussss-cdn-tencent',
+    'cmliussss-cdn-ali',
+    'custom',
+  ]);
+
+  const isCustomUrl = /^https?:\/\//i.test(envProxy);
+
+  const proxyType: DoubanImageProxyType =
+    (validTypes.has(envType as DoubanImageProxyType) && (envType as DoubanImageProxyType)) ||
+    (isCustomUrl ? 'custom' : 'cmliussss-cdn-tencent');
+
+  const proxyUrl = proxyType === 'custom' && isCustomUrl ? envProxy : '';
+
   return {
-    proxyType: doubanImageProxyType,
-    proxyUrl: doubanImageProxy,
+    proxyType,
+    proxyUrl,
   };
 }
 
@@ -45,7 +61,7 @@ export function processImageUrl(originalUrl: string): string {
   const { proxyType, proxyUrl } = getDoubanImageProxyConfig();
   switch (proxyType) {
     case 'server':
-      return `/api/image-proxy?url=${encodeURIComponent(originalUrl)}`;
+      return originalUrl;
     case 'img3':
       return originalUrl.replace(/img\d+\.doubanio\.com/g, 'img3.doubanio.com');
     case 'cmliussss-cdn-tencent':

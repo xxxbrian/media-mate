@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 
 import { getCacheTime } from '@/lib/config';
-import { fetchDoubanData } from '@/lib/douban';
+import {
+  buildDoubanUrlVariants,
+  fetchDoubanDataWithFallback,
+} from '@/lib/douban';
 import { DoubanItem, DoubanResult } from '@/lib/types';
 
 interface DoubanCategoryApiResponse {
@@ -21,8 +24,6 @@ interface DoubanCategoryApiResponse {
 }
 
 export const runtime = 'nodejs';
-export const revalidate = 1800;
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
@@ -62,11 +63,18 @@ export async function GET(request: Request) {
     );
   }
 
-  const target = `https://m.douban.com/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`;
+  const path = `/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`;
 
   try {
-    // 调用豆瓣 API
-    const doubanData = await fetchDoubanData<DoubanCategoryApiResponse>(target);
+    const targetList = buildDoubanUrlVariants({
+      path,
+      proxyType: 'cmliussss-cdn-tencent',
+    });
+
+    // 调用豆瓣 API，支持多源兜底
+    const doubanData = await fetchDoubanDataWithFallback<DoubanCategoryApiResponse>(
+      targetList
+    );
 
     // 转换数据格式
     const list: DoubanItem[] = doubanData.items.map((item) => ({

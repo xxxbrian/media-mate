@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 
 import { getCacheTime } from '@/lib/config';
-import { fetchDoubanData } from '@/lib/douban';
+import {
+  buildDoubanUrlVariants,
+  fetchDoubanDataWithFallback,
+} from '@/lib/douban';
 import { DoubanItem, DoubanResult } from '@/lib/types';
 
 interface DoubanApiResponse {
@@ -14,8 +17,6 @@ interface DoubanApiResponse {
 }
 
 export const runtime = 'nodejs';
-export const revalidate = 1800;
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
@@ -58,11 +59,19 @@ export async function GET(request: Request) {
     return handleTop250(pageStart);
   }
 
-  const target = `https://movie.douban.com/j/search_subjects?type=${type}&tag=${tag}&sort=recommend&page_limit=${pageSize}&page_start=${pageStart}`;
+  const path = `/j/search_subjects?type=${type}&tag=${tag}&sort=recommend&page_limit=${pageSize}&page_start=${pageStart}`;
 
   try {
+    const targets = buildDoubanUrlVariants({
+      path,
+      useMovieHost: true,
+      proxyType: 'cmliussss-cdn-tencent',
+    });
+
     // 调用豆瓣 API
-    const doubanData = await fetchDoubanData<DoubanApiResponse>(target);
+    const doubanData = await fetchDoubanDataWithFallback<DoubanApiResponse>(
+      targets
+    );
 
     // 转换数据格式
     const list: DoubanItem[] = doubanData.subjects.map((item) => ({
@@ -96,26 +105,31 @@ export async function GET(request: Request) {
   }
 }
 
-function handleTop250(pageStart: number) {
-  const target = `https://movie.douban.com/top250?start=${pageStart}&filter=`;
+async function handleTop250(pageStart: number) {
+  const targets = buildDoubanUrlVariants({
+    path: `/top250?start=${pageStart}&filter=`,
+    useMovieHost: true,
+    proxyType: 'cmliussss-cdn-tencent',
+  });
 
-  // 直接使用 fetch 获取 HTML 页面
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  // 直接使用 fetch 获取 HTML 页面（支持多源兜底）
+  for (const target of targets) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  const fetchOptions = {
-    signal: controller.signal,
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      Referer: 'https://movie.douban.com/',
-      Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    },
-  };
+    const fetchOptions = {
+      signal: controller.signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        Referer: 'https://movie.douban.com/',
+        Accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      },
+    };
 
-  return fetch(target, fetchOptions)
-    .then(async (fetchResponse) => {
+    try {
+      const fetchResponse = await fetch(target, fetchOptions);
       clearTimeout(timeoutId);
 
       if (!fetchResponse.ok) {
@@ -164,15 +178,17 @@ function handleTop250(pageStart: number) {
           'Netlify-Vary': 'query',
         },
       });
-    })
-    .catch((error) => {
+    } catch (error) {
       clearTimeout(timeoutId);
-      return NextResponse.json(
-        {
-          error: '获取豆瓣 Top250 数据失败',
-          details: (error as Error).message,
-        },
-        { status: 500 }
-      );
-    });
+      // 尝试下一个候选
+      continue;
+    }
+  }
+
+  return NextResponse.json(
+    {
+      error: '获取豆瓣 Top250 数据失败',
+    },
+    { status: 500 }
+  );
 }

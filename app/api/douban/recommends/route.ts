@@ -3,7 +3,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getCacheTime } from '@/lib/config';
-import { fetchDoubanData } from '@/lib/douban';
+import {
+  buildDoubanUrlVariants,
+  fetchDoubanDataWithFallback,
+} from '@/lib/douban';
 import { DoubanResult } from '@/lib/types';
 
 interface DoubanRecommendApiResponse {
@@ -24,8 +27,6 @@ interface DoubanRecommendApiResponse {
 }
 
 export const runtime = 'nodejs';
-export const revalidate = 1800;
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
     tags.push(platform);
   }
 
-  const baseUrl = `https://m.douban.com/rexxar/api/v2/${kind}/recommend`;
+  const path = `/rexxar/api/v2/${kind}/recommend`;
   const params = new URLSearchParams();
   params.append('refresh', '0');
   params.append('start', pageStart.toString());
@@ -92,12 +93,14 @@ export async function GET(request: NextRequest) {
     params.append('sort', sort);
   }
 
-  const target = `${baseUrl}?${params.toString()}`;
-  console.log(target);
+  const targets = buildDoubanUrlVariants({
+    path: `${path}?${params.toString()}`,
+    proxyType: 'cmliussss-cdn-tencent',
+  });
+
   try {
-    const doubanData = await fetchDoubanData<DoubanRecommendApiResponse>(
-      target
-    );
+    const doubanData =
+      await fetchDoubanDataWithFallback<DoubanRecommendApiResponse>(targets);
     const list = doubanData.items
       .filter((item) => item.type == 'movie' || item.type == 'tv')
       .map((item) => ({

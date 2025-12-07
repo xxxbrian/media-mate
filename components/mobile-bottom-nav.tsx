@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Cat, Clover, Film, Home, Radio, Star, Tv } from "lucide-react";
+import { Cat, Clover, Film, Home, Radio, Tv } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -28,12 +28,6 @@ const baseItems: NavItem[] = [
   { icon: Radio, label: "直播", href: "/live" },
 ];
 
-const customItem: NavItem = {
-  icon: Star,
-  label: "自定义",
-  href: "/douban?type=custom",
-};
-
 const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
   let pathname = usePathname();
   const searchParams = useSearchParams();
@@ -45,14 +39,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
   }
   const currentActive = activePath ?? pathname;
 
-  // 只在客户端读取 runtime config
-  let navItems = baseItems;
-  if (typeof window !== "undefined") {
-    const runtimeConfig = (window as any).RUNTIME_CONFIG;
-    if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
-      navItems = [...baseItems, customItem];
-    }
-  }
+  const navItems = baseItems;
 
   const isActive = (href: string) => {
     const typeMatch = href.match(/type=([^&]+)/)?.[1];

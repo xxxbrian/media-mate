@@ -34,3 +34,93 @@ export async function fetchDoubanData<T>(url: string): Promise<T> {
     throw error;
   }
 }
+
+export type DoubanProxyType =
+  | 'direct'
+  | 'cors-proxy-zwei'
+  | 'cmliussss-cdn-tencent'
+  | 'cmliussss-cdn-ali'
+  | 'cors-anywhere'
+  | 'custom';
+
+function normalizeCustomBase(custom?: string): string | null {
+  if (!custom) return null;
+  const trimmed = custom.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//.test(trimmed)) {
+    return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+  }
+  return `https://${trimmed.replace(/\/+$/, '')}`;
+}
+
+function getBaseHost(
+  proxyType: DoubanProxyType,
+  useMovieHost: boolean,
+  customBase?: string
+): string | null {
+  switch (proxyType) {
+    case 'cmliussss-cdn-tencent':
+      return useMovieHost
+        ? 'https://movie.douban.cmliussss.net'
+        : 'https://m.douban.cmliussss.net';
+    case 'cmliussss-cdn-ali':
+      return useMovieHost
+        ? 'https://movie.douban.cmliussss.com'
+        : 'https://m.douban.cmliussss.com';
+    case 'custom':
+      return normalizeCustomBase(customBase);
+    case 'direct':
+    case 'cors-proxy-zwei':
+    case 'cors-anywhere':
+    default:
+      return useMovieHost
+        ? 'https://movie.douban.com'
+        : 'https://m.douban.com';
+  }
+}
+
+export function buildDoubanUrlVariants(options: {
+  path: string;
+  useMovieHost?: boolean;
+  proxyType?: DoubanProxyType;
+  customProxy?: string;
+}): string[] {
+  const { path, useMovieHost = false, proxyType = 'direct', customProxy } =
+    options;
+  const priority: DoubanProxyType[] = [
+    proxyType,
+    'cmliussss-cdn-tencent',
+    'cmliussss-cdn-ali',
+    'direct',
+  ];
+
+  const seen = new Set<string>();
+  const urls: string[] = [];
+
+  priority.forEach((type) => {
+    const base = getBaseHost(type, useMovieHost, customProxy);
+    if (!base) return;
+    const full = `${base}${path}`;
+    if (!seen.has(full)) {
+      seen.add(full);
+      urls.push(full);
+    }
+  });
+
+  return urls;
+}
+
+export async function fetchDoubanDataWithFallback<T>(
+  urls: string[]
+): Promise<T> {
+  let lastError: unknown;
+  for (const url of urls) {
+    try {
+      return await fetchDoubanData<T>(url);
+    } catch (err) {
+      lastError = err;
+      continue;
+    }
+  }
+  throw lastError || new Error('All douban requests failed');
+}
