@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
-    unoptimized: true,
+    // allow optimization; limit to known poster/CDN domains and our proxy
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         protocol: 'https',

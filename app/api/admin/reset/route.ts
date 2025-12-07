@@ -8,7 +8,7 @@ import { resetConfig } from '@/lib/config';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
-  const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
+  const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'redis';
   if (storageType === 'localstorage') {
     return NextResponse.json(
       {

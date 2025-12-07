@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       authenticated: !!authInfo,
       adultFilterEnabled,
       contentMode: adultFilterEnabled ? 'family' : 'adult',
-      storageType: process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage',
+      storageType: process.env.NEXT_PUBLIC_STORAGE_TYPE || 'redis',
       message: authInfo ? '服务器运行正常' : '服务器运行正常，请先登录',
     },
     {

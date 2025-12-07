@@ -38,13 +38,10 @@ export default function LoginPage() {
         const res = await fetch("/api/server-config");
         if (!res.ok) return;
         const data = (await res.json()) as ServerConfig;
-        const storageType = data.StorageType;
-        setShouldAskUsername(Boolean(storageType && storageType !== "localstorage"));
-        setRegistrationEnabled(
-          Boolean(data.EnableRegistration && storageType !== "localstorage")
-        );
+        setShouldAskUsername(true);
+        setRegistrationEnabled(Boolean(data.EnableRegistration));
       } catch {
-        setShouldAskUsername(false);
+        setShouldAskUsername(true);
         setRegistrationEnabled(false);
       }
     };

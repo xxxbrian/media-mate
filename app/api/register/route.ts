@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 检查存储类型（localstorage 不支持多用户）
-    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'redis';
     if (storageType === 'localstorage') {
       return NextResponse.json(
         { error: '当前存储模式不支持用户注册，请使用 Redis/Upstash/Kvrocks' },

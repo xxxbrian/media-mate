@@ -1,5 +1,3 @@
-'use client';
-
 export interface BangumiCalendarData {
   weekday: {
     en: string;
@@ -33,7 +31,7 @@ function normalizeImageUrl(url?: string): string | undefined {
 /**
  * 规范化 Bangumi 数据，确保图片链接使用 HTTPS
  */
-function normalizeBangumiData(
+export function normalizeBangumiData(
   data: BangumiCalendarData[]
 ): BangumiCalendarData[] {
   return data.map((day) => ({

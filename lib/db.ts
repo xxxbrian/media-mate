@@ -6,14 +6,13 @@ import { RedisStorage } from './redis.db';
 import { Favorite, IStorage, PlayRecord, SkipConfig } from './types';
 import { UpstashRedisStorage } from './upstash.db';
 
-// storage type 常量: 'localstorage' | 'redis' | 'upstash'，默认 'localstorage'
+// storage type 常量: 'redis' | 'upstash' | 'kvrocks'，默认 'redis'
 const STORAGE_TYPE =
   (process.env.NEXT_PUBLIC_STORAGE_TYPE as
-    | 'localstorage'
     | 'redis'
     | 'upstash'
     | 'kvrocks'
-    | undefined) || 'localstorage';
+    | undefined) || 'redis';
 
 // 创建存储实例
 function createStorage(): IStorage {
@@ -24,9 +23,8 @@ function createStorage(): IStorage {
       return new UpstashRedisStorage();
     case 'kvrocks':
       return new KvrocksStorage();
-    case 'localstorage':
     default:
-      return null as unknown as IStorage;
+      return new RedisStorage();
   }
 }
 

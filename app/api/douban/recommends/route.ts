@@ -24,6 +24,7 @@ interface DoubanRecommendApiResponse {
 }
 
 export const runtime = 'nodejs';
+export const revalidate = 1800;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

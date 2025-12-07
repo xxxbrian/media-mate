@@ -16,7 +16,7 @@ const gunzipAsync = promisify(gunzip);
 export async function POST(req: NextRequest) {
   try {
     // 检查存储类型
-    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'redis';
     if (storageType === 'localstorage') {
       return NextResponse.json(
         { error: '不支持本地存储进行数据迁移' },
