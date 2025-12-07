@@ -97,7 +97,7 @@ async function fetchPlainTextWithTimeout(
     }
 
     return (await response.text()).trim();
-  } catch (error) {
+  } catch {
     return null;
   } finally {
     clearTimeout(timeoutId);
@@ -198,7 +198,7 @@ export async function getCurrentVersionInfo(): Promise<VersionInfo> {
       updateAvailable: false, // 将在 checkForUpdates 中更新
       displayVersion: `v${CURRENT_VERSION}`,
     };
-  } catch (error) {
+  } catch {
     // 降级处理：使用 VERSION.txt 的默认值
     const timestamp = '20251006163200';
     return {
@@ -309,7 +309,7 @@ export async function checkForUpdates(currentTimestamp: string): Promise<{
     return {
       hasUpdate: false,
     };
-  } catch (error) {
+  } catch {
     // 静默处理错误
     return {
       hasUpdate: false,

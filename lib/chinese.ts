@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { Converter } from 'opencc-js';
 
 // 提供繁体 -> 简体 的转换函数。

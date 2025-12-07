@@ -1,5 +1,3 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig, refineConfig } from '@/lib/config';
@@ -99,7 +97,7 @@ async function refreshConfig() {
 
       try {
         JSON.parse(decodedContent);
-      } catch (e) {
+      } catch {
         throw new Error('配置文件格式错误，请检查 JSON 语法');
       }
       config.ConfigFile = decodedContent;
@@ -209,7 +207,7 @@ async function refreshRecordAndFavorites() {
       try {
         let favorites = await db.getAllFavorites(user);
         favorites = Object.fromEntries(
-          Object.entries(favorites).filter(([_, fav]) => fav.origin !== 'live')
+          Object.entries(favorites).filter(([, fav]) => fav.origin !== 'live')
         );
         const totalFavorites = Object.keys(favorites).length;
         let processedFavorites = 0;

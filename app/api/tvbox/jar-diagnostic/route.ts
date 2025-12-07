@@ -248,7 +248,6 @@ export async function GET(request: NextRequest) {
         ...JAR_SOURCES.domestic.slice(0, 3),
       ];
 
-  // eslint-disable-next-line no-console
   console.log(
     `🔍 开始 JAR 源诊断测试，环境: ${env.isDomestic ? '国内' : '国际'}`
   );
@@ -262,7 +261,6 @@ export async function GET(request: NextRequest) {
     const batchResults = await Promise.all(batch.map(testJarSource));
     results.push(...batchResults);
 
-    // eslint-disable-next-line no-console
     console.log(`✅ 完成批次 ${Math.floor(i / concurrency) + 1}`);
   }
 

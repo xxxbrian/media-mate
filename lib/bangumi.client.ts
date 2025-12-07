@@ -61,7 +61,7 @@ export async function GetBangumiCalendarData(): Promise<BangumiCalendarData[]> {
     // 确保返回的数据是数组格式，并规范化图片链接
     const calendarData = Array.isArray(data) ? data : [];
     return normalizeBangumiData(calendarData);
-  } catch (error) {
+  } catch {
     return [];
   }
 }

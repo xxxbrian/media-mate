@@ -1,4 +1,4 @@
-/* eslint-disable no-console, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createClient, RedisClientType } from 'redis';
 
@@ -259,6 +259,13 @@ export abstract class BaseRedisStorage implements IStorage {
     if (stored === null) return false;
     // 确保比较时都是字符串类型
     return ensureString(stored) === password;
+  }
+
+  async getUserPassword(userName: string): Promise<string | null> {
+    const stored = await this.withRetry(() =>
+      this.client.get(this.userPwdKey(userName))
+    );
+    return stored === null ? null : ensureString(stored);
   }
 
   // 检查用户是否存在

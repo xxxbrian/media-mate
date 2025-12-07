@@ -1,5 +1,3 @@
-/* eslint-disable no-console*/
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -8,11 +6,8 @@ import { db } from '@/lib/db';
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
-  const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'redis';
-
   try {
-    const body = await request.json();
-    const { newPassword } = body;
+    const { newPassword } = (await request.json()) as { newPassword?: string };
 
     // 获取认证信息
     const authInfo = getAuthInfoFromCookie(request);

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import he from 'he';
-import Hls from 'hls.js';
+import Hls, { type ErrorData, type FragLoadedData } from 'hls.js';
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -183,7 +183,7 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
       });
 
       // 监听片段加载完成，只需首个分片即可计算速度
-      hls.on(Hls.Events.FRAG_LOADED, (event: any, data: any) => {
+      hls.on(Hls.Events.FRAG_LOADED, (_event, data: FragLoadedData) => {
         if (
           fragmentStartTime > 0 &&
           data &&
@@ -214,7 +214,7 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
       hls.attachMedia(video);
 
       // 监听hls.js错误
-      hls.on(Hls.Events.ERROR, (event: any, data: any) => {
+      hls.on(Hls.Events.ERROR, (_event, data: ErrorData) => {
         console.error('HLS错误:', data);
         if (data.fatal) {
           clearTimeout(timeout);

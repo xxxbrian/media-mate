@@ -115,6 +115,7 @@ export async function GET(request: NextRequest) {
       );
     }
   } catch (error) {
+    console.error('搜索单条结果失败:', error);
     return NextResponse.json(
       {
         error: '搜索失败',

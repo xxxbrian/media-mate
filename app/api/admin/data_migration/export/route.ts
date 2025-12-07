@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any,no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { promisify } from 'util';
 import { gzip } from 'zlib';
@@ -7,6 +5,7 @@ import { gzip } from 'zlib';
 import { getAuthInfoFromCookie } from '@/lib/auth';
 import { SimpleCrypto } from '@/lib/crypto';
 import { db } from '@/lib/db';
+import { MigrationPayload, MigrationUserData } from '@/lib/data-migration';
 import { CURRENT_VERSION } from '@/lib/version';
 
 export const runtime = 'nodejs';
@@ -47,14 +46,14 @@ export async function POST(req: NextRequest) {
     }
 
     // 收集所有数据
-    const exportData = {
+    const exportData: MigrationPayload = {
       timestamp: new Date().toISOString(),
       serverVersion: CURRENT_VERSION,
       data: {
         // 管理员配置
         adminConfig: config,
         // 所有用户数据
-        userData: {} as { [username: string]: any }
+        userData: {}
       }
     };
 
@@ -66,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     // 为每个用户收集数据
     for (const username of allUsers) {
-      const userData = {
+      const userData: MigrationUserData = {
         // 播放记录
         playRecords: await db.getAllPlayRecords(username),
         // 收藏夹
@@ -131,13 +130,7 @@ export async function POST(req: NextRequest) {
 async function getUserPassword(username: string): Promise<string | null> {
   try {
     // 使用 Redis 存储的直接访问方法
-    const storage = (db as any).storage;
-    if (storage && typeof storage.client?.get === 'function') {
-      const passwordKey = `u:${username}:pwd`;
-      const password = await storage.client.get(passwordKey);
-      return password;
-    }
-    return null;
+    return await db.getUserPassword(username);
   } catch (error) {
     console.error(`获取用户 ${username} 密码失败:`, error);
     return null;

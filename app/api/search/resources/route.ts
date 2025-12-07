@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { resolveAdultFilter } from '@/lib/adult-filter';
@@ -38,6 +36,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error('获取可用资源失败:', error);
     return NextResponse.json({ error: '获取资源失败' }, { status: 500 });
   }
 }

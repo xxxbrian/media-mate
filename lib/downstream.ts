@@ -213,7 +213,7 @@ export async function searchFromApi(
     }
 
     return results;
-  } catch (error) {
+  } catch {
     return [];
   }
 }

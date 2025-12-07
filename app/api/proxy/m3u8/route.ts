@@ -1,5 +1,3 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
-
 import { NextResponse } from "next/server";
 
 import { getConfig } from "@/lib/config";
@@ -17,7 +15,7 @@ export async function GET(request: Request) {
   }
 
   const config = await getConfig();
-  const liveSource = config.LiveConfig?.find((s: any) => s.key === source);
+  const liveSource = config.LiveConfig?.find((s) => s.key === source);
   if (!liveSource) {
     return NextResponse.json({ error: 'Source not found' }, { status: 404 });
   }
@@ -75,23 +73,25 @@ export async function GET(request: Request) {
     headers.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range');
 
     // 直接返回视频流
+    responseUsed = true;
     return new Response(response.body, {
       status: 200,
       headers,
     });
   } catch (error) {
+    console.error('Failed to fetch m3u8:', error);
     return NextResponse.json({ error: 'Failed to fetch m3u8' }, { status: 500 });
   } finally {
     // 确保 response 被正确关闭以释放资源
     if (response && !responseUsed) {
       try {
         response.body?.cancel();
-      } catch (error) {
-        // 忽略关闭时的错误
-        console.warn('Failed to close response body:', error);
-      }
+    } catch (error) {
+      // 忽略关闭时的错误
+      console.warn('Failed to close response body:', error);
     }
   }
+}
 }
 
 function rewriteM3U8Content(content: string, baseUrl: string, req: Request, allowCORS: boolean) {
@@ -102,7 +102,7 @@ function rewriteM3U8Content(content: string, baseUrl: string, req: Request, allo
     try {
       const refererUrl = new URL(referer);
       protocol = refererUrl.protocol.replace(':', '');
-    } catch (error) {
+    } catch {
       // ignore
     }
   }

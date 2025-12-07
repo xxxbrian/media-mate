@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowUpDown } from 'lucide-react';
 
@@ -539,13 +540,14 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                       >
                         <div className="flex-shrink-0 w-12 h-20 bg-muted rounded overflow-hidden">
                           {source.episodes?.length ? (
-                            <img
+                            <Image
                               src={processImageUrl(source.poster)}
                               alt={source.title}
-                              className="w-full h-full object-cover"
+                              width={48}
+                              height={80}
+                              className="h-full w-full object-cover"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).style.display =
-                                  'none';
+                                e.currentTarget.style.display = 'none';
                               }}
                             />
                           ) : null}

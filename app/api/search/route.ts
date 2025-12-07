@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any,no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -8,6 +6,7 @@ import { getAvailableApiSites, getCacheTime, getConfig } from '@/lib/config';
 import { searchFromApi } from '@/lib/downstream';
 import { rankSearchResults } from '@/lib/search-ranking';
 import { yellowWords } from '@/lib/yellow';
+import { type SearchResult } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -63,7 +62,8 @@ export async function GET(request: NextRequest) {
       normalizedQuery = await toSimplified(query);
     }
   } catch (e) {
-    console.warn('繁体转简体失败，使用原始关键词', (e as any)?.message || e);
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn('繁体转简体失败，使用原始关键词', message);
     normalizedQuery = query;
   }
 
@@ -75,29 +75,34 @@ export async function GET(request: NextRequest) {
 
   // 添加超时控制和错误处理，避免慢接口拖累整体响应
   // 对每个站点，尝试搜索所有关键词
-  const searchPromises = apiSites.flatMap((site) =>
-    searchQueries.map((q) =>
-      Promise.race([
-        searchFromApi(site, q),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`${site.name} timeout`)), 20000)
-        ),
-      ]).catch((err) => {
-        console.warn(`搜索失败 ${site.name} (query: ${q}):`, err.message);
-        return []; // 返回空数组而不是抛出错误
-      })
-    )
+  const searchPromises: Array<Promise<SearchResult[]>> = apiSites.flatMap(
+    (site) =>
+      searchQueries.map((q) =>
+        Promise.race<SearchResult[]>([
+          searchFromApi(site, q),
+          new Promise<SearchResult[]>((_, reject) =>
+            setTimeout(() => reject(new Error(`${site.name} timeout`)), 20000)
+          ),
+        ]).catch((err) => {
+          const message = err instanceof Error ? err.message : String(err);
+          console.warn(`搜索失败 ${site.name} (query: ${q}):`, message);
+          return [] as SearchResult[]; // 返回空数组而不是抛出错误
+        })
+      )
   );
 
   try {
     const results = await Promise.allSettled(searchPromises);
-    const successResults = results
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => (result as PromiseFulfilledResult<any>).value);
-    let flattenedResults = successResults.flat();
+    const successResults = results.filter(
+      (result): result is PromiseFulfilledResult<SearchResult[]> =>
+        result.status === 'fulfilled'
+    );
+    let flattenedResults: SearchResult[] = successResults.flatMap(
+      (result) => result.value
+    );
 
     // 去重：根据 source 和 id 去重
-    const uniqueResultsMap = new Map<string, any>();
+    const uniqueResultsMap = new Map<string, SearchResult>();
     flattenedResults.forEach((item) => {
       const key = `${item.source}|${item.id}`;
       if (!uniqueResultsMap.has(key)) {
@@ -151,6 +156,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
+    console.error('搜索接口异常:', error);
     return NextResponse.json({ error: '搜索失败' }, { status: 500 });
   }
 }

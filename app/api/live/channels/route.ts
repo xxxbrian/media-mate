@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       data: channelData.channels
     });
   } catch (error) {
+    console.error('获取频道信息失败:', error);
     return NextResponse.json(
       { error: '获取频道信息失败' },
       { status: 500 }

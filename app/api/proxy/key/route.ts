@@ -1,5 +1,3 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
-
 import { NextResponse } from "next/server";
 
 import { getConfig } from "@/lib/config";
@@ -15,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   const config = await getConfig();
-  const liveSource = config.LiveConfig?.find((s: any) => s.key === source);
+  const liveSource = config.LiveConfig?.find((s) => s.key === source);
   if (!liveSource) {
     return NextResponse.json({ error: 'Source not found' }, { status: 404 });
   }
@@ -42,6 +40,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
+    console.error('Failed to fetch key:', error);
     return NextResponse.json({ error: 'Failed to fetch key' }, { status: 500 });
   }
 }

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any,no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -7,6 +5,7 @@ import { toSimplified } from '@/lib/chinese';
 import { getAvailableApiSites, getConfig } from '@/lib/config';
 import { searchFromApi } from '@/lib/downstream';
 import { rankSearchResults } from '@/lib/search-ranking';
+import { type SearchResult } from '@/lib/types';
 import { yellowWords } from '@/lib/yellow';
 
 export const runtime = 'nodejs';
@@ -91,31 +90,33 @@ export async function GET(request: NextRequest) {
 
       // 记录已完成的源数量
       let completedSources = 0;
-      const allResults: any[] = [];
+      const allResults: SearchResult[] = [];
 
       // 为每个源创建搜索 Promise
       const searchPromises = apiSites.map(async (site) => {
         try {
           // 对每个站点，尝试搜索所有关键词
           const siteResultsPromises = searchQueries.map((q) =>
-            Promise.race([
+            Promise.race<SearchResult[]>([
               searchFromApi(site, q),
-              new Promise((_, reject) =>
+              new Promise<SearchResult[]>((_, reject) =>
                 setTimeout(
                   () => reject(new Error(`${site.name} timeout`)),
                   20000
                 )
               ),
             ]).catch((err) => {
-              console.warn(`搜索失败 ${site.name} (query: ${q}):`, err.message);
-              return [];
+              const message = err instanceof Error ? err.message : String(err);
+              console.warn(`搜索失败 ${site.name} (query: ${q}):`, message);
+              return [] as SearchResult[];
             })
           );
 
-          const resultsArrays = await Promise.all(siteResultsPromises);
+          const resultsArrays: SearchResult[][] =
+            await Promise.all(siteResultsPromises);
           // 展平并去重
-          let results = resultsArrays.flat() as any[];
-          const uniqueMap = new Map();
+          let results: SearchResult[] = resultsArrays.flat();
+          const uniqueMap = new Map<string, SearchResult>();
           results.forEach((r) => uniqueMap.set(r.id, r));
           results = Array.from(uniqueMap.values());
 

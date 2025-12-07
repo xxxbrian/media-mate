@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any,no-console,@typescript-eslint/no-non-null-assertion */
-
 import { NextRequest, NextResponse } from 'next/server';
 
+import type { AdminConfig } from '@/lib/admin.types';
 import { getAuthInfoFromCookie } from '@/lib/auth';
 import { getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
@@ -23,6 +22,20 @@ const ACTIONS = [
   'batchUpdateUserGroups',
 ] as const;
 
+type AdminUser = AdminConfig['UserConfig']['Users'][number];
+
+type UserRequestBody = {
+  targetUsername?: string;
+  targetPassword?: string;
+  action?: (typeof ACTIONS)[number];
+  userGroup?: string;
+  enabledApis?: string[];
+  groupAction?: 'add' | 'edit' | 'delete';
+  groupName?: string;
+  userGroups?: string[];
+  usernames?: string[];
+};
+
 export async function POST(request: NextRequest) {
   const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'redis';
   if (storageType === 'localstorage') {
@@ -35,7 +48,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as UserRequestBody;
 
     const authInfo = getAuthInfoFromCookie(request);
     if (!authInfo || !authInfo.username) {
@@ -47,11 +60,7 @@ export async function POST(request: NextRequest) {
       targetUsername, // 目标用户名
       targetPassword, // 目标用户密码（仅在添加用户时需要）
       action,
-    } = body as {
-      targetUsername?: string;
-      targetPassword?: string;
-      action?: (typeof ACTIONS)[number];
-    };
+    } = body;
 
     if (!action || !ACTIONS.includes(action)) {
       return NextResponse.json({ error: '参数格式错误' }, { status: 400 });
@@ -95,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 查找目标用户条目（用户组操作和批量操作不需要）
-    let targetEntry: any = null;
+    let targetEntry: AdminUser | undefined;
     let isTargetAdmin = false;
 
     if (!['userGroup', 'batchUpdateUserGroups'].includes(action) && targetUsername) {
@@ -117,6 +126,12 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'add': {
+        if (!targetUsername) {
+          return NextResponse.json(
+            { error: '缺少目标用户名' },
+            { status: 400 }
+          );
+        }
         if (targetEntry) {
           return NextResponse.json({ error: '用户已存在' }, { status: 400 });
         }
@@ -126,14 +141,14 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        await db.registerUser(targetUsername!, targetPassword);
+        await db.registerUser(targetUsername, targetPassword);
 
         // 获取用户组信息
-        const { userGroup } = body as { userGroup?: string };
+        const { userGroup } = body;
 
         // 更新配置
-        const newUser: any = {
-          username: targetUsername!,
+        const newUser: AdminUser = {
+          username: targetUsername,
           role: 'user',
         };
 
@@ -231,6 +246,9 @@ export async function POST(request: NextRequest) {
         break;
       }
       case 'changePassword': {
+        if (!targetUsername) {
+          return NextResponse.json({ error: '缺少目标用户名' }, { status: 400 });
+        }
         if (!targetEntry) {
           return NextResponse.json(
             { error: '目标用户不存在' },
@@ -260,10 +278,13 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        await db.changePassword(targetUsername!, targetPassword);
+        await db.changePassword(targetUsername, targetPassword);
         break;
       }
       case 'deleteUser': {
+        if (!targetUsername) {
+          return NextResponse.json({ error: '缺少目标用户名' }, { status: 400 });
+        }
         if (!targetEntry) {
           return NextResponse.json(
             { error: '目标用户不存在' },
@@ -286,7 +307,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        await db.deleteUser(targetUsername!);
+        await db.deleteUser(targetUsername);
 
         // 从配置中移除用户
         const userIndex = adminConfig.UserConfig.Users.findIndex(

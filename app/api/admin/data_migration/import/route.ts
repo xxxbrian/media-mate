@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any,no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { promisify } from 'util';
 import { gunzip } from 'zlib';
@@ -8,6 +6,11 @@ import { getAuthInfoFromCookie } from '@/lib/auth';
 import { configSelfCheck, setCachedConfig } from '@/lib/config';
 import { SimpleCrypto } from '@/lib/crypto';
 import { db } from '@/lib/db';
+import {
+  type MigrationPayload,
+  type MigrationUserData,
+  isMigrationPayload,
+} from '@/lib/data-migration';
 
 export const runtime = 'nodejs';
 
@@ -55,7 +58,7 @@ export async function POST(req: NextRequest) {
     let decryptedData: string;
     try {
       decryptedData = SimpleCrypto.decrypt(encryptedData, password);
-    } catch (error) {
+    } catch {
       return NextResponse.json({ error: '解密失败，请检查密码是否正确' }, { status: 400 });
     }
 
@@ -65,17 +68,18 @@ export async function POST(req: NextRequest) {
     const decompressedData = decompressedBuffer.toString();
 
     // 解析JSON数据
-    let importData: any;
+    let parsedData: unknown;
     try {
-      importData = JSON.parse(decompressedData);
-    } catch (error) {
+      parsedData = JSON.parse(decompressedData);
+    } catch {
       return NextResponse.json({ error: '备份文件格式错误' }, { status: 400 });
     }
 
-    // 验证数据格式
-    if (!importData.data || !importData.data.adminConfig || !importData.data.userData) {
+    if (!isMigrationPayload(parsedData)) {
       return NextResponse.json({ error: '备份文件格式无效' }, { status: 400 });
     }
+
+    const importData: MigrationPayload = parsedData;
 
     // 开始导入数据 - 先清空现有数据
     await db.clearAllData();
@@ -86,32 +90,32 @@ export async function POST(req: NextRequest) {
     await setCachedConfig(importData.data.adminConfig);
 
     // 导入用户数据
-    const userData = importData.data.userData;
-    for (const username in userData) {
-      const user = userData[username];
+    const userData: Record<string, MigrationUserData> = importData.data.userData;
+    for (const [username, user] of Object.entries(userData)) {
+      const { password: userPassword } = user;
 
       // 重新注册用户（包含密码）
-      if (user.password) {
-        await db.registerUser(username, user.password);
+      if (userPassword) {
+        await db.registerUser(username, userPassword);
       }
 
       // 导入播放记录
-      if (user.playRecords) {
+      if (user.playRecords && Object.keys(user.playRecords).length > 0) {
         for (const [key, record] of Object.entries(user.playRecords)) {
-          await (db as any).storage.setPlayRecord(username, key, record);
+          await db.setPlayRecordByKey(username, key, record);
         }
       }
 
       // 导入收藏夹
-      if (user.favorites) {
+      if (user.favorites && Object.keys(user.favorites).length > 0) {
         for (const [key, favorite] of Object.entries(user.favorites)) {
-          await (db as any).storage.setFavorite(username, key, favorite);
+          await db.setFavoriteByKey(username, key, favorite);
         }
       }
 
       // 导入搜索历史
       if (user.searchHistory && Array.isArray(user.searchHistory)) {
-        for (const keyword of user.searchHistory.reverse()) { // 反转以保持顺序
+        for (const keyword of [...user.searchHistory].reverse()) { // 反转以保持顺序
           await db.addSearchHistory(username, keyword);
         }
       }
@@ -119,9 +123,10 @@ export async function POST(req: NextRequest) {
       // 导入跳过片头片尾配置
       if (user.skipConfigs) {
         for (const [key, skipConfig] of Object.entries(user.skipConfigs)) {
-          const [source, id] = key.split('+');
+          const [source, ...rest] = key.split('+');
+          const id = rest.join('+');
           if (source && id) {
-            await db.setSkipConfig(username, source, id, skipConfig as any);
+            await db.setSkipConfig(username, source, id, skipConfig);
           }
         }
       }
@@ -131,7 +136,7 @@ export async function POST(req: NextRequest) {
       message: '数据导入成功',
       importedUsers: Object.keys(userData).length,
       timestamp: importData.timestamp,
-      serverVersion: typeof importData.serverVersion === 'string' ? importData.serverVersion : '未知版本'
+      serverVersion: importData.serverVersion
     });
 
   } catch (error) {

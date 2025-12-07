@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
+    console.error('获取节目单信息失败:', error);
     return NextResponse.json(
       { error: '获取节目单信息失败' },
       { status: 500 }

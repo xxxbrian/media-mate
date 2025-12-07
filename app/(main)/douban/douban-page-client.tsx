@@ -17,61 +17,84 @@ import DoubanSelector from "@/components/douban-selector";
 import VideoCard from "@/components/video-card";
 import { Card, CardContent } from "@/components/ui/card";
 
+type DoubanContentType = "movie" | "tv" | "anime" | "show" | "custom";
+
+type RuntimeConfig = {
+  CUSTOM_CATEGORIES?: Array<{ name: string; type: "movie" | "tv"; query: string }>;
+};
+
+type DoubanParamsSnapshot = {
+  type: DoubanContentType;
+  primarySelection: string;
+  secondarySelection: string;
+  multiLevelSelection: Record<string, string>;
+  selectedWeekday: string;
+  currentPage: number;
+};
+
+const parseDoubanType = (value: string | null): DoubanContentType => {
+  const availableTypes: DoubanContentType[] = ["movie", "tv", "anime", "show", "custom"];
+  return availableTypes.includes(value as DoubanContentType)
+    ? (value as DoubanContentType)
+    : "movie";
+};
+
 export default function DoubanPageClient() {
   const searchParams = useSearchParams();
+  const type = parseDoubanType(searchParams.get("type"));
   const [doubanData, setDoubanData] = useState<DoubanItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectorsReady, setSelectorsReady] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadingRef = useRef<HTMLDivElement>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const currentParamsRef = useRef({
-    type: "",
-    primarySelection: "",
-    secondarySelection: "",
-    multiLevelSelection: {} as Record<string, string>,
-    selectedWeekday: "",
-    currentPage: 0,
-  });
-
-  const type = searchParams.get("type") || "movie";
 
   const [customCategories, setCustomCategories] = useState<
     Array<{ name: string; type: "movie" | "tv"; query: string }>
   >([]);
 
-  const [primarySelection, setPrimarySelection] = useState<string>(() => {
-    if (type === "movie") return "热门";
-    if (type === "tv" || type === "show") return "最近热门";
-    if (type === "anime") return "每日放送";
-    return "";
-  });
-  const [secondarySelection, setSecondarySelection] = useState<string>(() => {
-    if (type === "movie") return "全部";
-    if (type === "tv") return "tv";
-    if (type === "show") return "show";
-    return "全部";
-  });
+  const initialPrimarySelection =
+    type === "movie" ? "热门" : type === "tv" || type === "show" ? "最近热门" : type === "anime" ? "每日放送" : "";
 
-  const [multiLevelValues, setMultiLevelValues] = useState<Record<string, string>>({
+  const initialSecondarySelection =
+    type === "movie" ? "全部" : type === "tv" ? "tv" : type === "show" ? "show" : "全部";
+
+  const initialMultiLevelValues: Record<string, string> = {
     type: "all",
     region: "all",
     year: "all",
     platform: "all",
     label: "all",
     sort: "T",
-  });
+  };
+
+  const [primarySelection, setPrimarySelection] = useState<string>(initialPrimarySelection);
+  const [secondarySelection, setSecondarySelection] = useState<string>(initialSecondarySelection);
+
+  const [multiLevelValues, setMultiLevelValues] =
+    useState<Record<string, string>>(initialMultiLevelValues);
 
   const [selectedWeekday, setSelectedWeekday] = useState<string>("");
 
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const currentParamsRef = useRef<DoubanParamsSnapshot>({
+    type,
+    primarySelection: initialPrimarySelection,
+    secondarySelection: initialSecondarySelection,
+    multiLevelSelection: { ...initialMultiLevelValues },
+    selectedWeekday: "",
+    currentPage: 0,
+  });
+
   useEffect(() => {
-    const runtimeConfig = (window as any).RUNTIME_CONFIG;
-    if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
-      setCustomCategories(runtimeConfig.CUSTOM_CATEGORIES);
+    const runtimeConfig = (window as typeof window & { RUNTIME_CONFIG?: RuntimeConfig })
+      .RUNTIME_CONFIG;
+    const customCategoriesConfig = runtimeConfig?.CUSTOM_CATEGORIES;
+    if (customCategoriesConfig && customCategoriesConfig.length > 0) {
+      setCustomCategories(customCategoriesConfig);
     }
   }, []);
 
@@ -148,16 +171,19 @@ export default function DoubanPageClient() {
 
   const skeletonData = Array.from({ length: 25 }, (_, index) => index);
 
-  const isSnapshotEqual = useCallback((s1: any, s2: any) => {
-    return (
-      s1.type === s2.type &&
-      s1.primarySelection === s2.primarySelection &&
-      s1.secondarySelection === s2.secondarySelection &&
-      s1.selectedWeekday === s2.selectedWeekday &&
-      s1.currentPage === s2.currentPage &&
-      JSON.stringify(s1.multiLevelSelection) === JSON.stringify(s2.multiLevelSelection)
-    );
-  }, []);
+  const isSnapshotEqual = useCallback(
+    (s1: DoubanParamsSnapshot, s2: DoubanParamsSnapshot) => {
+      return (
+        s1.type === s2.type &&
+        s1.primarySelection === s2.primarySelection &&
+        s1.secondarySelection === s2.secondarySelection &&
+        s1.selectedWeekday === s2.selectedWeekday &&
+        s1.currentPage === s2.currentPage &&
+        JSON.stringify(s1.multiLevelSelection) === JSON.stringify(s2.multiLevelSelection)
+      );
+    },
+    []
+  );
 
   const getRequestParams = useCallback(
     (pageStart: number) => {

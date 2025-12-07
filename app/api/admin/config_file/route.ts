@@ -1,5 +1,3 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -38,7 +36,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 获取请求体
-    const body = await request.json();
+    const body = (await request.json()) as {
+      configFile?: string;
+      subscriptionUrl?: string;
+      autoUpdate?: boolean;
+      lastCheckTime?: string;
+    };
     const { configFile, subscriptionUrl, autoUpdate, lastCheckTime } = body;
 
     // 允许空内容，表示清空配置
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (configFile && configFile.trim()) {
       try {
         JSON.parse(configFile);
-      } catch (e) {
+      } catch {
         return NextResponse.json(
           { error: '配置文件格式错误，请检查 JSON 语法' },
           { status: 400 }

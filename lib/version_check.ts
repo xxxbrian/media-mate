@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 'use client';
 
 // 版本检查结果枚举

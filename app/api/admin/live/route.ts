@@ -1,5 +1,3 @@
-/* eslint-disable no-console,no-case-declarations */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -25,7 +23,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as {
+      action?: 'add' | 'delete' | 'enable' | 'disable' | 'edit' | 'sort';
+      key?: string;
+      name?: string;
+      url?: string;
+      ua?: string;
+      epg?: string;
+      order?: string[];
+    };
     const { action, key, name, url, ua, epg } = body;
 
     if (!config) {
@@ -38,7 +44,10 @@ export async function POST(request: NextRequest) {
     }
 
     switch (action) {
-      case 'add':
+      case 'add': {
+        if (!key) {
+          return NextResponse.json({ error: '缺少 key 参数' }, { status: 400 });
+        }
         // 检查是否已存在相同的 key
         if (config.LiveConfig.some((l) => l.key === key)) {
           return NextResponse.json({ error: '直播源 key 已存在' }, { status: 400 });
@@ -66,8 +75,12 @@ export async function POST(request: NextRequest) {
         // 添加新的直播源
         config.LiveConfig.push(liveInfo);
         break;
+      }
 
-      case 'delete':
+      case 'delete': {
+        if (!key) {
+          return NextResponse.json({ error: '缺少 key 参数' }, { status: 400 });
+        }
         // 删除直播源
         const deleteIndex = config.LiveConfig.findIndex((l) => l.key === key);
         if (deleteIndex === -1) {
@@ -83,8 +96,12 @@ export async function POST(request: NextRequest) {
 
         config.LiveConfig.splice(deleteIndex, 1);
         break;
+      }
 
-      case 'enable':
+      case 'enable': {
+        if (!key) {
+          return NextResponse.json({ error: '缺少 key 参数' }, { status: 400 });
+        }
         // 启用直播源
         const enableSource = config.LiveConfig.find((l) => l.key === key);
         if (!enableSource) {
@@ -92,8 +109,12 @@ export async function POST(request: NextRequest) {
         }
         enableSource.disabled = false;
         break;
+      }
 
-      case 'disable':
+      case 'disable': {
+        if (!key) {
+          return NextResponse.json({ error: '缺少 key 参数' }, { status: 400 });
+        }
         // 禁用直播源
         const disableSource = config.LiveConfig.find((l) => l.key === key);
         if (!disableSource) {
@@ -101,8 +122,12 @@ export async function POST(request: NextRequest) {
         }
         disableSource.disabled = true;
         break;
+      }
 
-      case 'edit':
+      case 'edit': {
+        if (!key) {
+          return NextResponse.json({ error: '缺少 key 参数' }, { status: 400 });
+        }
         // 编辑直播源
         const editSource = config.LiveConfig.find((l) => l.key === key);
         if (!editSource) {
@@ -129,8 +154,9 @@ export async function POST(request: NextRequest) {
           editSource.channelNumber = 0;
         }
         break;
+      }
 
-      case 'sort':
+      case 'sort': {
         // 排序直播源
         const { order } = body;
         if (!Array.isArray(order)) {
@@ -155,6 +181,7 @@ export async function POST(request: NextRequest) {
 
         config.LiveConfig = sortedLiveConfig;
         break;
+      }
 
       default:
         return NextResponse.json({ error: '未知操作' }, { status: 400 });

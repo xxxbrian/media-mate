@@ -176,7 +176,9 @@ async function fetchRemote(
   }
 
   // 忽略最后的错误，返回 null 让上层处理
-
+  if (_lastError) {
+    console.warn(`[SpiderJar] Failed to fetch ${url}: ${_lastError}`);
+  }
   return null;
 }
 

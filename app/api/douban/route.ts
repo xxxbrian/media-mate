@@ -179,6 +179,7 @@ async function handleTop250(pageStart: number) {
         },
       });
     } catch (error) {
+      console.error('候选豆瓣地址请求失败:', error);
       clearTimeout(timeoutId);
       // 尝试下一个候选
       continue;

@@ -1,4 +1,3 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
@@ -40,7 +39,13 @@ async function generateAuthCookie(
   role?: 'owner' | 'admin' | 'user',
   includePassword = false
 ): Promise<string> {
-  const authData: any = { role: role || 'user' };
+  const authData: {
+    role: 'owner' | 'admin' | 'user';
+    password?: string;
+    username?: string;
+    signature?: string;
+    timestamp?: number;
+  } = { role: role || 'user' };
 
   // 只在需要时包含 password
   if (includePassword && password) {
@@ -61,7 +66,10 @@ async function generateAuthCookie(
 export async function POST(req: NextRequest) {
   try {
     // 数据库存储模式——校验用户名并尝试连接数据库
-    const { username, password } = await req.json();
+    const { username, password } = (await req.json()) as {
+      username?: string;
+      password?: string;
+    };
 
     if (!username || typeof username !== 'string') {
       return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });

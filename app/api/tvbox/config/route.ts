@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
@@ -116,6 +114,43 @@ function detectApiType(api: string): number {
   // 默认为JSON类型（苹果CMS最常见）
   return 1;
 }
+
+type TvboxSite = {
+  key: string;
+  name: string;
+  type: number;
+  api: string;
+  searchable: number;
+  quickSearch: number;
+  filterable: number;
+  changeable?: number;
+  original_api?: string;
+  header?: Record<string, string>;
+  timeout?: number;
+  retry?: number;
+  ext?: string;
+  playUrl?: string;
+  jar?: string;
+} & Record<string, unknown>;
+
+type TvboxLive = {
+  name: string;
+  type: number;
+  url: string;
+  ua: string;
+  epg: string;
+  logo: string;
+  group: string;
+};
+
+type TvboxConfig = {
+  spider: string;
+  sites: TvboxSite[];
+  lives: TvboxLive[];
+  parses: Array<Record<string, unknown>>;
+  flags: string[];
+  wall?: number;
+} & Record<string, unknown>;
 
 export async function GET(req: NextRequest) {
   try {
@@ -256,7 +291,7 @@ export async function GET(req: NextRequest) {
 
     const sites = sourcesToUse.map((s) => {
       const apiType = detectApiType(s.api);
-      const site: any = {
+      const site: TvboxSite = {
         key: s.key,
         name: s.name,
         type: apiType,
@@ -404,7 +439,7 @@ export async function GET(req: NextRequest) {
       }));
 
     // 构建配置对象（支持多种模式优化）
-    let tvboxConfig: any;
+    let tvboxConfig: TvboxConfig;
     if (mode === 'yingshicang') {
       // 专门为影视仓优化的配置 - 解决数据获取问题
       tvboxConfig = {
@@ -568,6 +603,7 @@ export async function GET(req: NextRequest) {
           { name: '默认解析', type: 0, url: 'https://jx.xmflv.com/?url=' },
           { name: '夜幕解析', type: 0, url: 'https://www.yemu.xyz/?url=' },
         ],
+        flags: ['youku', 'qq', 'iqiyi', 'qiyi', 'letv', 'sohu', 'mgtv'],
       };
     } else {
       // 标准完整配置 - 优化体验和兼容性
@@ -738,10 +774,10 @@ export async function GET(req: NextRequest) {
     tvboxConfig.spider_success = jarInfo.success;
 
     // 提供备用字段：仅用于调试，不影响体检
-    (tvboxConfig as any).spider_backup =
+    tvboxConfig.spider_backup =
       'https://gitcode.net/qq_26898231/TVBox/-/raw/main/JAR/XC.jar';
     // 保留候选列表以便前端展示（可选）
-    (tvboxConfig as any).spider_candidates = REMOTE_SPIDER_CANDIDATES.map(
+    tvboxConfig.spider_candidates = REMOTE_SPIDER_CANDIDATES.map(
       (c) => c.url
     );
 

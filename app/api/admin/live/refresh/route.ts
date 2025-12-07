@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -33,6 +31,7 @@ export async function POST(request: NextRequest) {
           const nums = await refreshLiveChannels(liveInfo);
           liveInfo.channelNumber = nums;
         } catch (error) {
+          console.error('刷新单个直播源失败:', error);
           liveInfo.channelNumber = 0;
         }
       });

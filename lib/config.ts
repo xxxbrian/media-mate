@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, no-console, @typescript-eslint/no-non-null-assertion */
-
 import { db } from '@/lib/db';
 
 import { AdminConfig } from './admin.types';
@@ -59,11 +57,11 @@ let cachedConfig: AdminConfig;
 
 // 从配置文件补充管理员配置
 export function refineConfig(adminConfig: AdminConfig): AdminConfig {
-  let fileConfig: ConfigFileStruct;
+  let fileConfig: ConfigFileStruct = {};
   try {
     fileConfig = JSON.parse(adminConfig.ConfigFile) as ConfigFileStruct;
-  } catch (e) {
-    fileConfig = {} as ConfigFileStruct;
+  } catch {
+    fileConfig = {};
   }
 
   // 合并文件中的源信息
@@ -196,11 +194,11 @@ async function getInitConfig(
     LastCheck: '',
   }
 ): Promise<AdminConfig> {
-  let cfgFile: ConfigFileStruct;
+  let cfgFile: ConfigFileStruct = {};
   try {
     cfgFile = JSON.parse(configFile) as ConfigFileStruct;
-  } catch (e) {
-    cfgFile = {} as ConfigFileStruct;
+  } catch {
+    cfgFile = {};
   }
   const defaultSiteName =
     process.env.NEXT_PUBLIC_SITE_NAME || 'Media Mate';
@@ -241,19 +239,20 @@ async function getInitConfig(
   } catch (e) {
     console.error('获取用户列表失败:', e);
   }
-  const allUsers = userNames
+  const allUsers: AdminConfig['UserConfig']['Users'] = userNames
     .filter((u) => u !== process.env.USERNAME)
     .map((u) => ({
       username: u,
       role: 'user',
       banned: false,
     }));
+  const ownerUsername = process.env.USERNAME || 'admin';
   allUsers.unshift({
-    username: process.env.USERNAME!,
+    username: ownerUsername,
     role: 'owner',
     banned: false,
   });
-  adminConfig.UserConfig.Users = allUsers as any;
+  adminConfig.UserConfig.Users = allUsers;
 
   // 从配置文件中补充源信息
   Object.entries(cfgFile.api_site || []).forEach(([key, site]) => {

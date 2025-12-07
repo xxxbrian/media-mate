@@ -1,5 +1,3 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
-
 import { NextResponse } from "next/server";
 
 import { getConfig } from "@/lib/config";
@@ -15,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   const config = await getConfig();
-  const liveSource = config.LiveConfig?.find((s: any) => s.key === source);
+  const liveSource = config.LiveConfig?.find((s) => s.key === source);
   if (!liveSource) {
     return NextResponse.json({ error: 'Source not found' }, { status: 404 });
   }
@@ -48,6 +46,7 @@ export async function GET(request: Request) {
     }
 
     // 使用流式传输，避免占用内存
+    let isCancelled = false;
     const stream = new ReadableStream({
       start(controller) {
         if (!response?.body) {
@@ -56,7 +55,6 @@ export async function GET(request: Request) {
         }
 
         reader = response.body.getReader();
-        const isCancelled = false;
 
         function pump() {
           if (isCancelled || !reader) {
@@ -88,7 +86,7 @@ export async function GET(request: Request) {
           if (reader) {
             try {
               reader.releaseLock();
-            } catch (e) {
+            } catch {
               // reader 可能已经被释放，忽略错误
             }
             reader = null;
@@ -99,10 +97,11 @@ export async function GET(request: Request) {
       },
       cancel() {
         // 当流被取消时，确保释放所有资源
+        isCancelled = true;
         if (reader) {
           try {
             reader.releaseLock();
-          } catch (e) {
+          } catch {
             // reader 可能已经被释放，忽略错误
           }
           reader = null;
@@ -111,7 +110,7 @@ export async function GET(request: Request) {
         if (response?.body) {
           try {
             response.body.cancel();
-          } catch (e) {
+          } catch {
             // 忽略取消时的错误
           }
         }
@@ -120,11 +119,12 @@ export async function GET(request: Request) {
 
     return new Response(stream, { headers });
   } catch (error) {
+    console.error('Failed to fetch segment:', error);
     // 确保在错误情况下也释放资源
     if (reader) {
       try {
         (reader as ReadableStreamDefaultReader<Uint8Array>).releaseLock();
-      } catch (e) {
+      } catch {
         // 忽略错误
       }
     }
@@ -132,7 +132,7 @@ export async function GET(request: Request) {
     if (response?.body) {
       try {
         response.body.cancel();
-      } catch (e) {
+      } catch {
         // 忽略错误
       }
     }

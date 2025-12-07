@@ -1,4 +1,3 @@
-/* eslint-disable no-console, @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -64,14 +63,15 @@ async function tryFetchHead(
       method: 'GET',
       headers: { Range: 'bytes=0-0' },
       redirect: 'follow',
-      signal: ctrl.signal as any,
+      signal: ctrl.signal,
       cache: 'no-store',
-    } as any);
+    });
     clearTimeout(timer);
     return { ok: res.ok, status: res.status };
-  } catch (e: any) {
+  } catch (e) {
     clearTimeout(timer);
-    return { ok: false, error: e?.message || 'fetch error' };
+    const message = e instanceof Error ? e.message : 'fetch error';
+    return { ok: false, error: message };
   }
 }
 
@@ -89,23 +89,59 @@ export async function GET(req: NextRequest) {
     const cfgRes = await fetch(configUrl, { cache: 'no-store' });
     const contentType = cfgRes.headers.get('content-type') || '';
     const text = await cfgRes.text();
-    let parsed: any = null;
+    let parsedConfig: {
+      sites?: Array<{ api?: string }>;
+      lives?: unknown[];
+      spider?: string;
+      parses?: unknown[];
+    } | null = null;
     let parseError: string | undefined;
     try {
-      parsed = JSON.parse(text);
-    } catch (e: any) {
-      parseError = e?.message || 'json parse error';
+      const parsedJson = JSON.parse(text) as unknown;
+      if (parsedJson && typeof parsedJson === 'object') {
+        const candidate = parsedJson as Record<string, unknown>;
+        parsedConfig = {
+          sites: Array.isArray(candidate.sites)
+            ? (candidate.sites as Array<{ api?: string }>)
+            : [],
+          lives: Array.isArray(candidate.lives) ? candidate.lives : [],
+          spider: typeof candidate.spider === 'string' ? candidate.spider : '',
+          parses: Array.isArray(candidate.parses) ? candidate.parses : [],
+        };
+      }
+    } catch (e) {
+      parseError = e instanceof Error ? e.message : 'json parse error';
     }
 
-    const result: any = {
+    const result: {
+      ok: boolean;
+      status: number;
+      contentType: string;
+      size: number;
+      baseUrl: string;
+      configUrl: string;
+      hasJson: boolean;
+      issues: string[];
+      sitesCount?: number;
+      livesCount?: number;
+      parsesCount?: number;
+      privateApis?: number;
+      spider?: string;
+      spiderUrl?: string;
+      spiderPrivate?: boolean;
+      spiderReachable?: boolean;
+      spiderStatus?: number;
+      spiderError?: string;
+      pass?: boolean;
+    } = {
       ok: cfgRes.ok,
       status: cfgRes.status,
       contentType,
       size: text.length,
       baseUrl,
       configUrl,
-      hasJson: !!parsed,
-      issues: [] as string[],
+      hasJson: !!parsedConfig,
+      issues: [],
     };
 
     if (!cfgRes.ok) {
@@ -114,23 +150,21 @@ export async function GET(req: NextRequest) {
     if (!contentType.includes('text/plain')) {
       result.issues.push('content-type is not text/plain');
     }
-    if (!parsed) {
+    if (!parsedConfig) {
       result.issues.push(`json parse failed: ${parseError}`);
     }
 
-    if (parsed) {
-      const sites = Array.isArray(parsed.sites) ? parsed.sites : [];
-      const lives = Array.isArray(parsed.lives) ? parsed.lives : [];
-      const spider = parsed.spider || '';
+    if (parsedConfig) {
+      const sites = parsedConfig.sites || [];
+      const lives = parsedConfig.lives || [];
+      const spider = parsedConfig.spider || '';
       result.sitesCount = sites.length;
       result.livesCount = lives.length;
-      result.parsesCount = Array.isArray(parsed.parses)
-        ? parsed.parses.length
-        : 0;
+      result.parsesCount = parsedConfig.parses?.length ?? 0;
 
       // 检查私网地址
       const privateApis = sites.filter(
-        (s: any) => typeof s?.api === 'string' && isPrivateHost(s.api)
+        (s) => typeof s?.api === 'string' && isPrivateHost(s.api as string)
       ).length;
       result.privateApis = privateApis;
       if (privateApis > 0) {
@@ -190,10 +224,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(result, {
       headers: { 'cache-control': 'no-store' },
     });
-  } catch (e: any) {
+  } catch (e) {
     console.error('Diagnose failed', e);
+    const message = e instanceof Error ? e.message : 'unknown error';
     return NextResponse.json(
-      { ok: false, error: e?.message || 'unknown error' },
+      { ok: false, error: message },
       { status: 500 }
     );
   }

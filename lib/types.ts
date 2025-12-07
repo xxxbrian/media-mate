@@ -47,6 +47,7 @@ export interface IStorage {
   // 用户相关
   registerUser(userName: string, password: string): Promise<void>;
   verifyUser(userName: string, password: string): Promise<boolean>;
+  getUserPassword(userName: string): Promise<string | null>;
   // 检查用户是否存在（无需密码）
   checkUserExist(userName: string): Promise<boolean>;
   // 修改用户密码
@@ -94,6 +95,7 @@ export interface SearchResult {
   episodes_titles: string[];
   source: string;
   source_name: string;
+  source_key?: string;
   class?: string;
   year: string;
   desc?: string;

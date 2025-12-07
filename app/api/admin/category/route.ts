@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any,no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -27,7 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = (await request.json()) as BaseBody & Record<string, any>;
+    const body = (await request.json()) as BaseBody & Record<string, unknown>;
     const { action } = body;
 
     const authInfo = getAuthInfoFromCookie(request);
