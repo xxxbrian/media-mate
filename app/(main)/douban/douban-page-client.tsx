@@ -569,7 +569,7 @@ export default function DoubanPageClient() {
         </Card>
       </div>
 
-      <div className="mx-auto mt-8 max-w-[95%]">
+      <div className="mx-auto mt-8 max-w-[95%] mb-20">
         <div className="grid grid-cols-3 justify-start gap-x-2 gap-y-2 px-0 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8 sm:gap-y-2 sm:px-2">
           {loading || !selectorsReady
             ? skeletonData.map((i) => <DoubanCardSkeleton key={i} />)
