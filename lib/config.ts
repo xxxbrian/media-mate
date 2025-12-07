@@ -203,7 +203,7 @@ async function getInitConfig(
     cfgFile = {} as ConfigFileStruct;
   }
   const defaultSiteName =
-    process.env.NEXT_PUBLIC_SITE_NAME || '影视聚合播放器';
+    process.env.NEXT_PUBLIC_SITE_NAME || 'Media Mate';
   const adminConfig: AdminConfig = {
     ConfigFile: configFile,
     ConfigSubscribtion: subConfig,

@@ -4,7 +4,7 @@
  */
 
 export async function GET() {
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || '影视聚合播放器';
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Media Mate';
   const html = `
 <!DOCTYPE html>
 <html lang="zh-CN" class="dark">
@@ -66,7 +66,7 @@ export async function GET() {
                     </span>
                 </button>
             </div>
-            
+
             <div id="result" class="p-6 md:p-8 min-h-[300px]">
                 <div class="flex flex-col items-center justify-center h-full text-gray-500 py-12">
                     <div class="w-20 h-20 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center mb-4">
@@ -77,7 +77,7 @@ export async function GET() {
                 </div>
             </div>
         </div>
-        
+
         <div class="mt-8 text-center text-sm text-gray-500">
             <p>Powered by ${siteName} &copy; ${new Date().getFullYear()}</p>
         </div>
@@ -248,7 +248,7 @@ export async function GET() {
                                 \${test.md5 ? \`<span>MD5: <span class="font-mono text-gray-400">\${test.md5.substring(0, 8)}...</span></span>\` : ''}
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center gap-4 flex-shrink-0">
                             <div class="text-right">
                                 <div class="text-lg font-bold \${test.responseTime < 1000 ? 'text-green-400' : test.responseTime < 3000 ? 'text-yellow-400' : 'text-red-400'}">
@@ -258,7 +258,7 @@ export async function GET() {
                             </div>
                         </div>
                     </div>
-                    
+
                     \${test.error ? \`
                         <div class="mt-3 text-xs text-red-400 bg-red-900/20 p-2 rounded border border-red-900/30">
                             Error: \${test.error}
