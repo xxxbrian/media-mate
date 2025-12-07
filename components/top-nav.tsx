@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 "use client";
 
 import React from "react";
@@ -39,11 +37,12 @@ function NavLink({ href, icon: Icon, label, active }: NavLinkProps) {
   );
 }
 
-export default function TopNavbar() {
+export default function TopNavbar({ siteName }: { siteName: string }) {
   // const { siteName } = useSite();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  // const fallbackSiteName = process.env.NEXT_PUBLIC_SITE_NAME || "media-mate";
+  const fallbackSiteName = process.env.NEXT_PUBLIC_SITE_NAME || "MediaMate";
+  const displayName = siteName || fallbackSiteName;
 
   const isActive = (href: string) => pathname === href;
 
@@ -65,8 +64,7 @@ export default function TopNavbar() {
                 className="shrink-0 select-none hover:opacity-90 transition-opacity"
               >
                 <span className="text-lg font-semibold tracking-tight text-foreground">
-                  {/* {siteName || fallbackSiteName} */}
-                  MediaMates
+                  {displayName}
                 </span>
               </Link>
             </div>

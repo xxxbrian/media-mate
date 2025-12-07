@@ -183,7 +183,7 @@ function HomeClient() {
       <Card className="gap-2">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold">mediamate</CardTitle>
+            <CardTitle className="text-2xl font-bold">Home</CardTitle>
             <p className="text-sm text-muted-foreground">
               发现、收藏、继续观看你喜欢的内容。
             </p>
@@ -209,7 +209,7 @@ function HomeClient() {
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as "home" | "favorites")}
       >
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="home">首页</TabsTrigger>
           <TabsTrigger value="favorites">收藏夹</TabsTrigger>
         </TabsList>

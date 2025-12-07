@@ -9,9 +9,10 @@ import { Button } from "./ui/button";
 
 interface MobileHeaderProps {
   showBackButton?: boolean;
+  siteName: string;
 }
 
-const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
+const MobileHeader = ({ showBackButton = false, siteName }: MobileHeaderProps) => {
   // const { siteName } = useSite();
 
   return (
@@ -35,7 +36,7 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
             className="pointer-events-auto text-sm font-semibold tracking-tight text-foreground hover:opacity-90 transition-opacity"
           >
             {/* {siteName} */}
-            MediaMate
+            {siteName}
           </Link>
         </div>
 
